@@ -1,9 +1,13 @@
 package com.example.api_querydsl.repository;
 
+import com.example.api_querydsl.dto.BoardAndReplyCount;
 import com.example.api_querydsl.entity.Board;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.stream.IntStream;
 
@@ -47,9 +51,13 @@ class BoardRepositoryTest {
 
     @Test
     public void test_getBoardAndReplyCountList() {
-        boardQueryRepository.getBoardAndReplyCountList("tc", "9")
-                .forEach(item -> {
-                    System.out.println(item);
-                });
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<BoardAndReplyCount> result = boardQueryRepository.getBoardAndReplyCountList("tc", "", pageable);
+
+        System.out.println(result.getTotalPages());
+        System.out.println(result.getSize());
+
+        result.getContent().forEach(System.out::println);
     }
 }

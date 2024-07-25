@@ -8,6 +8,9 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -23,7 +26,7 @@ public class BoardQueryRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
 
-    public List<BoardAndReplyCount> getBoardAndReplyCountList(String type, String keyword) {
+    public Page<BoardAndReplyCount> getBoardAndReplyCountList(String type, String keyword, Pageable pageable) {
         BooleanBuilder booleanBuilder = new BooleanBuilder();
 
         for (String t : type.split("")) {
@@ -37,7 +40,7 @@ public class BoardQueryRepository {
             }
         }
 
-        return jpaQueryFactory.select(Projections.constructor(
+        List<BoardAndReplyCount> boardAndReplyCountList = jpaQueryFactory.select(Projections.constructor(
                         BoardAndReplyCount.class,
                         member.email,
                         member.nickname,
@@ -52,7 +55,15 @@ public class BoardQueryRepository {
                 .from(board)
                 .where(booleanBuilder)
                 .leftJoin(board.writer, member)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
+
+        long total = jpaQueryFactory.select(board.count())
+                .from(board)
+                .fetchFirst();
+
+        return new PageImpl<>(boardAndReplyCountList, pageable, total);
     }
 
     public Board getBoardAndReplies(Long seq) {
