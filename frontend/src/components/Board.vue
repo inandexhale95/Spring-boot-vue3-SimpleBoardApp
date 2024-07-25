@@ -30,7 +30,12 @@
           :class="'page-item'"
           :key="pageNumber"
         >
-          <a :class="'page-link'">{{ pageNumber }}</a>
+          <a
+            :class="`page-link ${currentPage === pageNumber ? 'active' : ''}`"
+            href="#"
+            @click.prevent="movePage(pageNumber)"
+            >{{ pageNumber }}</a
+          >
         </li>
       </ul>
     </nav>
@@ -38,11 +43,16 @@
 </template>
 
 <script setup lang="ts">
-import { Ref, ref } from "vue";
+import { onMounted, Ref, ref } from "vue";
 import { BoardAndReplyCount, PageResultDTO } from "../types/models";
+
+onMounted(() => {
+  getBoardAndReplyCountList("tc", "", "1");
+});
 
 const boardAndReplyCount: Ref<BoardAndReplyCount[]> = ref([]);
 const pageList: Ref<number[]> = ref([]);
+const currentPage: Ref<number> = ref(1);
 
 const isPageResultDTO = (data: any): data is PageResultDTO => {
   return (
@@ -114,7 +124,11 @@ const getBoardAndReplyCountList = (
     });
 };
 
-getBoardAndReplyCountList("tc", "", "1");
+const movePage = (pageNumber: number) => {
+  if (currentPage.value === pageNumber) return;
+  currentPage.value = pageNumber;
+  getBoardAndReplyCountList("tc", "", pageNumber.toString());
+};
 </script>
 
 <style scoped></style>
